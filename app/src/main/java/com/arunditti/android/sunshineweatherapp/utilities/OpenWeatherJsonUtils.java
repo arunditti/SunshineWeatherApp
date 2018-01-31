@@ -15,7 +15,7 @@ import java.net.HttpURLConnection;
 
 public class OpenWeatherJsonUtils {
 
-    public static String[] getSimpleWeatherStringFromJson(Context context, String forecastJsonString)
+    public static String[] getSimpleWeatherStringsFromJson(Context context, String forecastJsonString)
                     throws JSONException {
         /* Weather information. Each day's forecast info is an element of the "list" array */
         final String OWM_LIST = "list";

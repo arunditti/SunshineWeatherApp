@@ -14,7 +14,12 @@ import android.widget.TextView;
 
 public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ForecastAdapterViewHolder> {
 
+    private static final String TAG = ForecastAdapter.class.getSimpleName();
     private String[] mWeatherData;
+
+    public ForecastAdapter() {
+
+    }
 
     public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder {
 
