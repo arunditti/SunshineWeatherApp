@@ -1,6 +1,6 @@
 package com.arunditti.android.sunshineweatherapp;
 
-import android.app.LoaderManager;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.arunditti.android.sunshineweatherapp.ForecastAdapter.ForecastAdapterOnClickHandler;
 import com.arunditti.android.sunshineweatherapp.data.SunshinePreferences;
 import com.arunditti.android.sunshineweatherapp.utilities.NetworkUtils;
 import com.arunditti.android.sunshineweatherapp.utilities.OpenWeatherJsonUtils;
@@ -22,7 +23,9 @@ import java.net.URL;
 import java.util.Scanner;
 import java.util.SimpleTimeZone;
 
-public class MainActivity extends AppCompatActivity {
+
+// Implement ForecastAdapterOnClickHandler from the MainActivity
+public class MainActivity extends AppCompatActivity implements ForecastAdapterOnClickHandler {
 
     //Create a field to store weather display TextView
     private RecyclerView mRecyclerView;
@@ -61,8 +64,11 @@ public class MainActivity extends AppCompatActivity {
         // Use setHasFixedSize(true) on mRecyclerView to designate that all items in the list will have the same size
         mRecyclerView.setHasFixedSize(true);
 
-        //set mForecastAdapter equal to a new ForecastAdapter
-        mForecastAdapter = new ForecastAdapter();
+        /*
+         * The ForecastAdapter is responsible for linking our weather data with the Views that
+         * will end up displaying our weather data.
+         */
+        mForecastAdapter = new ForecastAdapter(this);
 
         //Use mRecyclerView.setAdapter and pass in mForecastAdapter
         mRecyclerView.setAdapter(mForecastAdapter);
@@ -76,6 +82,14 @@ public class MainActivity extends AppCompatActivity {
         showWeatherDataView();
         String location = SunshinePreferences.getPreferredWeatherLocation(this);
         new FetchWeatherTask().execute(location);
+    }
+
+    // Override ForecastAdapterOnClickHandler's onClick method
+    @Override
+    public void onClick(String weatherForDay) {
+        Context context = this;
+        // Show a Toast when an item is clicked, displaying that item's weather data
+        Toast.makeText(context, weatherForDay, Toast.LENGTH_SHORT).show();
     }
 
     //Create a method called showWeatherDataView that will hide the error message and show the weather data

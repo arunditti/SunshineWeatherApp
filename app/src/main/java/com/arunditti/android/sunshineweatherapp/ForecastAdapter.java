@@ -17,11 +17,39 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
     private static final String TAG = ForecastAdapter.class.getSimpleName();
     private String[] mWeatherData;
 
-    public ForecastAdapter() {
+    // Created a final private ForecastAdapterOnClickHandler called mClickHandler
+    /*
+     * An on-click handler that we've defined to make it easy for an Activity to interface with
+     * our RecyclerView
+     */
+    private final ForecastAdapterOnClickHandler mClickHandler;
 
+    /**
+     * The interface that receives onClick messages.
+     */
+
+    public interface ForecastAdapterOnClickHandler {
+        void onClick(String weatherForDay);
     }
 
-    public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder {
+    // Added a ForecastAdapterOnClickHandler as a parameter to the constructor and store it in mClickHandler
+    /**
+     * Creates a ForecastAdapter.
+     *
+     * @param clickHandler The on-click handler for this adapter. This single handler is called
+     *                     when an item is clicked.
+     */
+
+    public ForecastAdapter(ForecastAdapterOnClickHandler clickHandler) {
+        mClickHandler = clickHandler;
+    }
+
+    // Implement OnClickListener in the ForecastAdapterViewHolder class
+    /**
+     * Cache of the children views for a forecast list item.
+     */
+
+    public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
 
     public final TextView mWeatherTextView;
@@ -29,6 +57,23 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
         public ForecastAdapterViewHolder(View view) {
             super(view);
             mWeatherTextView = (TextView) view.findViewById(R.id.tv_weather_data);
+
+            // Call setOnClickListener on the view passed into the constructor (use 'this' as the OnClickListener)
+            view.setOnClickListener(this);
+        }
+
+        // Override onClick, passing the clicked day's data to mClickHandler via its onClick method
+        /**
+         * This gets called by the child views during a click.
+         *
+         * @param view The View that was clicked
+         */
+        @Override
+        public void onClick(View view) {
+            int adapterPosition = getAdapterPosition();
+            String weatherForDay = mWeatherData[adapterPosition];
+            mClickHandler.onClick(weatherForDay);
+
         }
     }
 
