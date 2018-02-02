@@ -1,11 +1,14 @@
 package com.arunditti.android.sunshineweatherapp;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,6 +29,8 @@ import java.util.SimpleTimeZone;
 
 // Implement ForecastAdapterOnClickHandler from the MainActivity
 public class MainActivity extends AppCompatActivity implements ForecastAdapterOnClickHandler {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     //Create a field to store weather display TextView
     private RecyclerView mRecyclerView;
@@ -89,7 +94,13 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     public void onClick(String weatherForDay) {
         Context context = this;
         // Show a Toast when an item is clicked, displaying that item's weather data
-        Toast.makeText(context, weatherForDay, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(context, weatherForDay, Toast.LENGTH_SHORT).show();
+        Class destinationClass = DetailActivity.class;
+        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
+
+        //Used putExtra method to add the String that was clicked into the intent used to start the DetailActivity
+        intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT, weatherForDay);
+        startActivity(intentToStartDetailActivity);
     }
 
     //Create a method called showWeatherDataView that will hide the error message and show the weather data
@@ -145,6 +156,19 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
         }
     }
 
+    private void openLocationMap() {
+        String addressString = "1600 Ampitheatre parkway, CA";
+        Uri geoLocation = Uri.parse("geo:0,0?p=" + addressString);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+
+        if(intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(TAG, "Couldn't call" +geoLocation.toString() + ", no receiving app installed");
+        }
+    }
     // Create a menu resource in res/menu/ called forecast.xml
     // Add one item to the menu with an ID of action_refresh
     // Set the title of the menu item to "Refresh" using strings.xml
@@ -169,6 +193,12 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
            // Instead of setting the text to "", set the adapter to null before refreshing
            mForecastAdapter.setWeatherData(null);
             loadWeatherData();
+            return true;
+        }
+
+        // Launch The map when map menu item is clicked
+        if(id == R.id.action_map) {
+            openLocationMap();
             return true;
         }
         return super.onOptionsItemSelected(item);

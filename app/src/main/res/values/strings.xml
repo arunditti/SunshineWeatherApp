@@ -1,6 +1,9 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Sunshine Weather App</string>
 
+    <string name="action_map">Map Location</string>
+    <string name="action_share">Share</string>
+
     <!--Add a string for the title of the refresh button, "Refresh"-->
     <string name="action_refresh">Refresh</string>
 
