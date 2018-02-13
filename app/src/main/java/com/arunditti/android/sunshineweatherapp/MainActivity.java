@@ -3,7 +3,9 @@ package com.arunditti.android.sunshineweatherapp;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,20 +17,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.arunditti.android.sunshineweatherapp.ForecastAdapter.ForecastAdapterOnClickHandler;
 import com.arunditti.android.sunshineweatherapp.data.SunshinePreferences;
 import com.arunditti.android.sunshineweatherapp.utilities.NetworkUtils;
 import com.arunditti.android.sunshineweatherapp.utilities.OpenWeatherJsonUtils;
 
 import java.net.URL;
-import java.util.Scanner;
-import java.util.SimpleTimeZone;
 
 
-// Implement ForecastAdapterOnClickHandler from the MainActivity
-public class MainActivity extends AppCompatActivity implements ForecastAdapterOnClickHandler {
+// Implement the loaderCallbacks from the MainActivity
+public class MainActivity extends AppCompatActivity implements
+        ForecastAdapter.ForecastAdapterOnClickHandler,
+        LoaderCallbacks<String[]> {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     private ProgressBar mLoadingIndicator;
 
     private ForecastAdapter mForecastAdapter;
+
+    private static final int FORECAST_LOADER_ID = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,105 +77,216 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
          */
         mForecastAdapter = new ForecastAdapter(this);
 
-        //Use mRecyclerView.setAdapter and pass in mForecastAdapter
+        /* Setting the adapter attaches it to the RecyclerView in our layout. */
         mRecyclerView.setAdapter(mForecastAdapter);
-        /* Once all of our views are setup, we can load the weather data. */
-        loadWeatherData();
-    }
 
-    //This is a method that will get the user's preferred location and execute your new AsyncTask
-    private void loadWeatherData() {
-        // Call showWeatherDataView before executing the AsyncTask
-        showWeatherDataView();
-        String location = SunshinePreferences.getPreferredWeatherLocation(this);
-        new FetchWeatherTask().execute(location);
-    }
+        // Remove the code for the AsyncTask and initialize the AsyncTaskLoader
+        int loaderId = FORECAST_LOADER_ID;
 
-    // Override ForecastAdapterOnClickHandler's onClick method
+         /*
+         * From MainActivity, we have implemented the LoaderCallbacks interface with the type of
+         * String array. (implements LoaderCallbacks<String[]>) The variable callback is passed
+         * to the call to initLoader below. This means that whenever the loaderManager has
+         * something to notify us of, it will do so through this callback.
+         */
+        LoaderCallbacks<String[]> callback = MainActivity.this;
+
+        /*
+         * The second parameter of the initLoader method below is a Bundle. Optionally, you can
+         * pass a Bundle to initLoader that you can then access from within the onCreateLoader
+         * callback. In our case, we don't actually use the Bundle, but it's here in case we wanted
+         * to.
+         */
+        Bundle bundleForLoader = null;
+
+        /*
+         * Ensures a loader is initialized and active. If the loader doesn't already exist, one is
+         * created and (if the activity/fragment is currently started) starts the loader. Otherwise
+         * the last created loader is re-used.
+         */
+        getSupportLoaderManager().initLoader(loaderId, bundleForLoader, callback);
+    }
+    /**
+     * Instantiate and return a new Loader for the given ID.
+     *
+     * @param id The ID whose loader is to be created.
+     * @param loaderArgs Any arguments supplied by the caller.
+     *
+     * @return Return a new Loader instance that is ready to start loading.
+     */
     @Override
-    public void onClick(String weatherForDay) {
-        Context context = this;
-        // Show a Toast when an item is clicked, displaying that item's weather data
-        //Toast.makeText(context, weatherForDay, Toast.LENGTH_SHORT).show();
-        Class destinationClass = DetailActivity.class;
-        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
+    public Loader<String[]> onCreateLoader(int id, final Bundle loaderArgs) {
 
-        //Used putExtra method to add the String that was clicked into the intent used to start the DetailActivity
-        intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT, weatherForDay);
-        startActivity(intentToStartDetailActivity);
-    }
+        return new AsyncTaskLoader<String[]>(this) {
 
-    //Create a method called showWeatherDataView that will hide the error message and show the weather data
-    private void showWeatherDataView() {
-        mErrorMessage.setVisibility(View.INVISIBLE);
-        mRecyclerView.setVisibility(View.VISIBLE);
-    }
+            /* This String array will hold and help cache our weather data */
+            String[] mWeatherData = null;
 
-    // Create a method called showErrorMessage that will hide the weather data and show the error message
-    private void showErrorMessage() {
-        mRecyclerView.setVisibility(View.INVISIBLE);
-        mErrorMessage.setVisibility(View.VISIBLE);
-    }
-
-    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
-
-        // Within your AsyncTask, override the method onPreExecute and show the loading indicator
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected String[] doInBackground(String... params) {
-            if(params.length == 0) {
-                return null;
+            // COMPLETED (3) Cache the weather data in a member variable and deliver it in onStartLoading.
+            /**
+             * Subclasses of AsyncTaskLoader must implement this to take care of loading their data.
+             */
+            @Override
+            protected void onStartLoading() {
+                if (mWeatherData != null) {
+                    deliverResult(mWeatherData);
+                } else {
+                    mLoadingIndicator.setVisibility(View.VISIBLE);
+                    forceLoad();
+                }
             }
-            String location = params[0];
-            URL weatherRequestUrl = NetworkUtils.buildUrl(location);
 
-            try {
-                String jsonWeatherResponse = NetworkUtils.getResponseFromHttpUrl(weatherRequestUrl);
-                String[] simpleJsonWeatherData = OpenWeatherJsonUtils.getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse);
-                return simpleJsonWeatherData;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
+            /**
+             * This is the method of the AsyncTaskLoader that will load and parse the JSON data
+             * from OpenWeatherMap in the background.
+             *
+             * @return Weather data from OpenWeatherMap as an array of Strings.
+             *         null if an error occurs
+             */
+            @Override
+            public String[] loadInBackground() {
 
-        @Override
-        protected void onPostExecute(String[] weatherData) {
-            // As soon as the data is finished loading, hide the loading indicator
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-            if(weatherData != null) {
-                // If the weather data was not null, make sure the data view is visible
-                showWeatherDataView();
-                mForecastAdapter.setWeatherData(weatherData);
-            } else {
-                showErrorMessage();
+                String locationQuery = SunshinePreferences
+                        .getPreferredWeatherLocation(MainActivity.this);
+
+                URL weatherRequestUrl = NetworkUtils.buildUrl(locationQuery);
+
+                try {
+                    String jsonWeatherResponse = NetworkUtils
+                            .getResponseFromHttpUrl(weatherRequestUrl);
+
+                    String[] simpleJsonWeatherData = OpenWeatherJsonUtils
+                            .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse);
+
+                    return simpleJsonWeatherData;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
+
+            /**
+             * Sends the result of the load to the registered listener.
+             *
+             * @param data The result of the load
+             */
+            public void deliverResult(String[] data) {
+                mWeatherData = data;
+                super.deliverResult(data);
+            }
+        };
+    }
+
+    // COMPLETED (4) When the load is finished, show either the data or an error message if there is no data
+    /**
+     * Called when a previously created loader has finished its load.
+     *
+     * @param loader The Loader that has finished.
+     * @param data The data generated by the Loader.
+     */
+    @Override
+    public void onLoadFinished(Loader<String[]> loader, String[] data) {
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        mForecastAdapter.setWeatherData(data);
+        if (null == data) {
+            showErrorMessage();
+        } else {
+            showWeatherDataView();
         }
     }
 
-    private void openLocationMap() {
-        String addressString = "1600 Ampitheatre parkway, CA";
-        Uri geoLocation = Uri.parse("geo:0,0?p=" + addressString);
+    /**
+     * Called when a previously created loader is being reset, and thus
+     * making its data unavailable.  The application should at this point
+     * remove any references it has to the Loader's data.
+     *
+     * @param loader The Loader that is being reset.
+     */
+    @Override
+    public void onLoaderReset(Loader<String[]> loader) {
+        /*
+         * We aren't using this method in our example application, but we are required to Override
+         * it to implement the LoaderCallbacks<String> interface
+         */
+    }
+
+    /**
+     * This method is used when we are resetting data, so that at one point in time during a
+     * refresh of our data, you can see that there is no data showing.
+     */
+    private void invalidateData() {
+        mForecastAdapter.setWeatherData(null);
+    }
+
+    /**
+     * This method uses the URI scheme for showing a location found on a map in conjunction with
+     * an implicit Intent. This super-handy intent is detailed in the "Common Intents" page of
+     * Android's developer site:
+     *
+     * @see "http://developer.android.com/guide/components/intents-common.html#Maps"
+     * <p>
+     * Protip: Hold Command on Mac or Control on Windows and click that link to automagically
+     * open the Common Intents page
+     */
+    private void openLocationInMap() {
+
+        String addressString = "1600 Ampitheatre Parkway, CA";
+        Uri geoLocation = Uri.parse("geo:0,0?q=" + addressString);
 
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(geoLocation);
 
-        if(intent.resolveActivity(getPackageManager()) != null) {
+        if (intent.resolveActivity(getPackageManager()) != null) {
             startActivity(intent);
         } else {
-            Log.d(TAG, "Couldn't call" +geoLocation.toString() + ", no receiving app installed");
+            Log.d(TAG, "Couldn't call " + geoLocation.toString() + ", no receiving apps installed!");
         }
     }
-    // Create a menu resource in res/menu/ called forecast.xml
-    // Add one item to the menu with an ID of action_refresh
-    // Set the title of the menu item to "Refresh" using strings.xml
 
-    // Override onCreateOptionsMenu to inflate the menu for this Activity
+    /**
+     * This method is for responding to clicks from our list.
+     *
+     * @param weatherForDay String describing weather details for a particular day
+     */
+    @Override
+    public void onClick(String weatherForDay) {
+        Context context = this;
+        Class destinationClass = DetailActivity.class;
+        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
+        intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT, weatherForDay);
+        startActivity(intentToStartDetailActivity);
+    }
+
+    /**
+     * This method will make the View for the weather data visible and
+     * hide the error message.
+     * <p>
+     * Since it is okay to redundantly set the visibility of a View, we don't
+     * need to check whether each view is currently visible or invisible.
+     */
+    private void showWeatherDataView() {
+        /* First, make sure the error is invisible */
+        mErrorMessage.setVisibility(View.INVISIBLE);
+        /* Then, make sure the weather data is visible */
+        mRecyclerView.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * This method will make the error message visible and hide the weather
+     * View.
+     * <p>
+     * Since it is okay to redundantly set the visibility of a View, we don't
+     * need to check whether each view is currently visible or invisible.
+     */
+    private void showErrorMessage() {
+        /* First, hide the currently visible data */
+        mRecyclerView.setVisibility(View.INVISIBLE);
+        /* Then, show the error */
+        mErrorMessage.setVisibility(View.VISIBLE);
+    }
+
+    // COMPLETED (6) Remove any and all code from MainActivity that references FetchWeatherTask
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         /* Use AppCompatActivity's method getMenuInflater to get a handle on the menu inflater */
@@ -184,21 +297,25 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
         return true;
     }
 
-    // Override onOptionsItemSelected to handle clicks on the refresh button
     @Override
-    public  boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if(id == R.id.action_refresh) {
-           // Instead of setting the text to "", set the adapter to null before refreshing
-           mForecastAdapter.setWeatherData(null);
-            loadWeatherData();
+        // COMPLETED (5) Refactor the refresh functionality to work with our AsyncTaskLoader
+        if (id == R.id.action_refresh) {
+            invalidateData();
+            getSupportLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
             return true;
         }
 
-        // Launch The map when map menu item is clicked
-        if(id == R.id.action_map) {
-            openLocationMap();
+        if (id == R.id.action_map) {
+            openLocationInMap();
+            return true;
+        }
+
+        if (id == R.id.action_settings) {
+            Intent startSettingsActivity = new Intent(this, SettingsActivity.class);
+            startActivity(startSettingsActivity);
             return true;
         }
         return super.onOptionsItemSelected(item);
