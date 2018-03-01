@@ -19,7 +19,7 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "weather.db";
 
     //  Create a private static final int called DATABASE_VERSION and set it to 1
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     //Create a constructor that accepts a context and call through to the superclass constructor
     public WeatherDbHelper(Context context) {
@@ -51,19 +51,28 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                  */
                         WeatherEntry._ID               + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
 
-                        WeatherEntry.COLUMN_DATE       + " INTEGER, "                 +
+                        WeatherEntry.COLUMN_DATE       + " INTEGER NOT NULL, "                 +
 
-                        WeatherEntry.COLUMN_WEATHER_ID + " INTEGER, "                 +
+                        WeatherEntry.COLUMN_WEATHER_ID + " INTEGER NOT NULL, "                 +
 
-                        WeatherEntry.COLUMN_MIN_TEMP   + " REAL, "                    +
-                        WeatherEntry.COLUMN_MAX_TEMP   + " REAL, "                    +
+                        WeatherEntry.COLUMN_MIN_TEMP   + " REAL NOT NULL, "                    +
+                        WeatherEntry.COLUMN_MAX_TEMP   + " REAL NOT NULL, "                    +
 
-                        WeatherEntry.COLUMN_HUMIDITY   + " REAL, "                    +
-                        WeatherEntry.COLUMN_PRESSURE   + " REAL, "                    +
+                        WeatherEntry.COLUMN_HUMIDITY   + " REAL NOT NULL, "                    +
+                        WeatherEntry.COLUMN_PRESSURE   + " REAL NOT NULL, "                    +
 
-                        WeatherEntry.COLUMN_WIND_SPEED + " REAL, "                    +
-                        WeatherEntry.COLUMN_DEGREES    + " REAL" + ");";
+                        WeatherEntry.COLUMN_WIND_SPEED + " REAL NOT NULL, "                    +
+                        WeatherEntry.COLUMN_DEGREES    + " REAL NOT NULL, " +
 
+//              COMPLETED (1) Add a UNIQUE constraint on the date column to replace on conflict
+                        /*
+                 * To ensure this table can only contain one weather entry per date, we declare
+                 * the date column to be unique. We also specify "ON CONFLICT REPLACE". This tells
+                 * SQLite that if we have a weather entry for a certain date and we attempt to
+                 * insert another weather entry with that date, we replace the old weather entry.
+                 */
+
+                        " UNIQUE (" + WeatherEntry.COLUMN_DATE + ") ON CONFLICT REPLACE);";
         /*
          * After we've spelled out our SQLite table creation statement above, we actually execute
          * that SQL with the execSQL method of our SQLite database object.
@@ -81,5 +90,9 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
 
+        //  Within onUpgrade, drop the weather table if it exists
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + WeatherEntry.TABLE_NAME);
+        // call onCreate and pass in the SQLiteDatabase (passed in to onUpgrade)
+        onCreate(sqLiteDatabase);
     }
 }
