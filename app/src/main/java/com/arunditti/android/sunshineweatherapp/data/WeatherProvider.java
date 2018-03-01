@@ -10,6 +10,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.arunditti.android.sunshineweatherapp.utilities.SunshineDateUtils;
+
 import java.util.SimpleTimeZone;
 
 /**
@@ -39,6 +41,46 @@ public class WeatherProvider extends ContentProvider {
         // Instantiate mDbHelper
         mDbHelper = new WeatherDbHelper(getContext());
         return true;
+    }
+
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+
+        final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        switch (sUriMatcher.match(uri)) {
+            //Only perform our implementation of bulkInsert if the URI matches the CODE_WEATHER code
+            case CODE_WEATHER:
+                db.beginTransaction();
+                int rowsInserted = 0;
+                try {
+                    for(ContentValues value : values) {
+                        long weatherDate = value.getAsLong(WeatherContract.WeatherEntry.COLUMN_DATE);
+
+                        if(!SunshineDateUtils.isDateNormalized(weatherDate)) {
+                            throw new IllegalArgumentException("Date must be normalized to insert");
+                        }
+
+                        long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, value);
+                        if(_id != -1) {
+                            rowsInserted++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+
+                } finally {
+
+                }
+
+                if(rowsInserted > 0) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                }
+
+                //Return the number of rows inserted from our implementation of bulkInsert
+                return rowsInserted;
+
+                //If the URI does match match CODE_WEATHER, return the super implementation of bulkInsert
+                default:
+                    return super.bulkInsert(uri, values);
+        }
     }
 
     @Nullable
