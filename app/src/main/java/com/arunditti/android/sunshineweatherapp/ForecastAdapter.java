@@ -1,12 +1,16 @@
 package com.arunditti.android.sunshineweatherapp;
 
 import android.content.Context;
-import android.support.v4.app.ShareCompat;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.arunditti.android.sunshineweatherapp.utilities.SunshineDateUtils;
+import com.arunditti.android.sunshineweatherapp.utilities.SunshineWeatherUtils;
+import com.arunditti.android.sunshineweatherapp.data.WeatherContract.WeatherEntry;
 
 /**
  * Created by arunditti on 1/26/18.
@@ -15,7 +19,8 @@ import android.widget.TextView;
 public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ForecastAdapterViewHolder> {
 
     private static final String TAG = ForecastAdapter.class.getSimpleName();
-    private String[] mWeatherData;
+    private final Context mContext;
+    private Cursor mCursor;
 
     // Created a final private ForecastAdapterOnClickHandler called mClickHandler
     /*
@@ -36,45 +41,13 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
     /**
      * Creates a ForecastAdapter.
      *
+     * @param mContext
      * @param clickHandler The on-click handler for this adapter. This single handler is called
-     *                     when an item is clicked.
      */
 
-    public ForecastAdapter(ForecastAdapterOnClickHandler clickHandler) {
+    public ForecastAdapter(Context mContext, ForecastAdapterOnClickHandler clickHandler) {
+        this.mContext = mContext;
         mClickHandler = clickHandler;
-    }
-
-    // Implement OnClickListener in the ForecastAdapterViewHolder class
-    /**
-     * Cache of the children views for a forecast list item.
-     */
-
-    public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-
-    public final TextView mWeatherTextView;
-
-        public ForecastAdapterViewHolder(View view) {
-            super(view);
-            mWeatherTextView = (TextView) view.findViewById(R.id.tv_weather_data);
-
-            // Call setOnClickListener on the view passed into the constructor (use 'this' as the OnClickListener)
-            view.setOnClickListener(this);
-        }
-
-        // Override onClick, passing the clicked day's data to mClickHandler via its onClick method
-        /**
-         * This gets called by the child views during a click.
-         *
-         * @param view The View that was clicked
-         */
-        @Override
-        public void onClick(View view) {
-            int adapterPosition = getAdapterPosition();
-            String weatherForDay = mWeatherData[adapterPosition];
-            mClickHandler.onClick(weatherForDay);
-
-        }
     }
 
     @Override
@@ -90,18 +63,81 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
 
     @Override
     public void onBindViewHolder(ForecastAdapterViewHolder forecastAdapterViewHolder, int position) {
-        String weatherForThisDay = mWeatherData[position];
-        forecastAdapterViewHolder.mWeatherTextView.setText(weatherForThisDay);
+;
+        mCursor.moveToPosition(position);
+
+        //Read date from the cursor
+        int dateInMillisIdex = mCursor.getColumnIndex(WeatherEntry.COLUMN_DATE);
+        long dateInMillis = mCursor.getLong(dateInMillisIdex);
+        //FGet human readable string using Utility method
+        String dateString = SunshineDateUtils.getFriendlyDateString(mContext, dateInMillis, false);
+
+        //Use weather Id to get the proper desrciption
+        int weatherIdIndex = mCursor.getColumnIndex(WeatherEntry.COLUMN_WEATHER_ID);
+        int weatherId = mCursor.getInt(weatherIdIndex);
+        String description = SunshineWeatherUtils.getStringForWeatherCondition(mContext, weatherId);
+
+        //Read high temperature from cursor
+        int highInCelsiusIndex = mCursor.getColumnIndex(WeatherEntry.COLUMN_MAX_TEMP);
+        double highInCelsius = mCursor.getInt(highInCelsiusIndex);
+        //Read low temperature from cursor
+        int lowInCelsiusIndex = mCursor.getColumnIndex(WeatherEntry.COLUMN_MIN_TEMP);
+        double lowInCelsius = mCursor.getInt(lowInCelsiusIndex);
+
+
+        String highTemperature = SunshineWeatherUtils.formatTemperature(mContext, highInCelsius);
+        String lowTemperature = SunshineWeatherUtils.formatTemperature(mContext, lowInCelsius);
+
+        String weatherSummary = dateString + " - " + description + " - " + highTemperature + " / " + lowTemperature;
+
+//      COMPLETED (8) Display the summary that you created above
+        forecastAdapterViewHolder.weatherSummary.setText(weatherSummary);
+
     }
 
     @Override
     public int getItemCount() {
-        if(null == mWeatherData) return 0;
-        return mWeatherData.length;
+        if(mCursor == null) {
+            return 0;
+        }
+
+        return mCursor.getCount();
     }
 
-    public void setWeatherData(String[] weatherData) {
-        mWeatherData = weatherData;
+    // Create a new method that allows you to swap Cursors.
+    void swapCursor(Cursor newCursor){
+        mCursor = newCursor;
+        //      COMPLETED (12) After the new Cursor is set, call notifyDataSetChanged
         notifyDataSetChanged();
+    }
+
+    // Implement OnClickListener in the ForecastAdapterViewHolder class
+    /**
+     * Cache of the children views for a forecast list item.
+     */
+
+    public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        final TextView weatherSummary;
+
+        public ForecastAdapterViewHolder(View view) {
+            super(view);
+            weatherSummary = (TextView) view.findViewById(R.id.tv_weather_data);
+
+            // Call setOnClickListener on the view passed into the constructor (use 'this' as the OnClickListener)
+            view.setOnClickListener(this);
+        }
+
+        /**
+         * This gets called by the child views during a click.
+         *
+         * @param view The View that was clicked
+         */
+        @Override
+        public void onClick(View view) {
+            String weatherForDay = weatherSummary.getText().toString();
+            mClickHandler.onClick(weatherForDay);
+
+        }
     }
 }

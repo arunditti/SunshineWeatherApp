@@ -12,7 +12,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_settings);
-        // COMPLETED (2) Set setDisplayHomeAsUpEnabled to true on the support ActionBar
+        // Set setDisplayHomeAsUpEnabled to true on the support ActionBar
         this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
@@ -21,6 +21,7 @@ public class SettingsActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == android.R.id.home) {
             onBackPressed();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
