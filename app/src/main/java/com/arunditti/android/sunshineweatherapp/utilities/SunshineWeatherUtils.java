@@ -39,18 +39,18 @@ public class SunshineWeatherUtils {
          * "21°C"
          */
         public static String formatTemperature(Context context, double temperature) {
-            int temperatureFormatResourceId = R.string.format_temperature_celsius;
-
             if (!SunshinePreferences.isMetric(context)) {
                 temperature = celsiusToFahrenheit(temperature);
-                temperatureFormatResourceId = R.string.format_temperature_fahrenheit;
             }
+
+            int temperatureFormatResourceId = R.string.format_temperature;
 
         /* For presentation, assume the user doesn't care about tenths of a degree. */
             return String.format(context.getString(temperatureFormatResourceId), temperature);
         }
 
-        /**
+
+    /**
          * This method will format the temperatures to be displayed in the
          * following form: "HIGH°C / LOW°C"
          *
@@ -70,6 +70,51 @@ public class SunshineWeatherUtils {
             String highLowStr = formattedHigh + " / " + formattedLow;
             return highLowStr;
         }
+
+    /**
+     * This method uses the wind direction in degrees to determine compass direction as a
+     * String. (eg NW) The method will return the wind String in the following form: "2 km/h SW"
+     *
+     * @param context   Android Context to access preferences and resources
+     * @param windSpeed Wind speed in kilometers / hour
+     * @param degrees   Degrees as measured on a compass, NOT temperature degrees!
+     *                  See https://www.mathsisfun.com/geometry/degrees.html
+     *
+     * @return Wind String in the following form: "2 km/h SW"
+     */
+    public static String getFormattedWind(Context context, float windSpeed, float degrees) {
+        int windFormat = R.string.format_wind_kmh;
+
+        if (!SunshinePreferences.isMetric(context)) {
+            windFormat = R.string.format_wind_mph;
+            windSpeed = .621371192237334f * windSpeed;
+        }
+
+        /*
+         * You know what's fun? Writing really long if/else statements with tons of possible
+         * conditions. Seriously, try it!
+         */
+        String direction = "Unknown";
+        if (degrees >= 337.5 || degrees < 22.5) {
+            direction = "N";
+        } else if (degrees >= 22.5 && degrees < 67.5) {
+            direction = "NE";
+        } else if (degrees >= 67.5 && degrees < 112.5) {
+            direction = "E";
+        } else if (degrees >= 112.5 && degrees < 157.5) {
+            direction = "SE";
+        } else if (degrees >= 157.5 && degrees < 202.5) {
+            direction = "S";
+        } else if (degrees >= 202.5 && degrees < 247.5) {
+            direction = "SW";
+        } else if (degrees >= 247.5 && degrees < 292.5) {
+            direction = "W";
+        } else if (degrees >= 292.5 && degrees < 337.5) {
+            direction = "NW";
+        }
+
+        return String.format(context.getString(windFormat), windSpeed, direction);
+    }
 
     /**
      * Helper method to provide the string according to the weather

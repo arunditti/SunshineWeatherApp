@@ -55,23 +55,58 @@
 
 
 
+    <!-- - - - - - - - - - - - - - -
+        - Used by SunshineDateUtils  -
+        - - - - - - - - - - - - - - -->
 
-
-    <!-- For labelling today's forecast [CHAR LIMIT=15] -->
+    <!-- For labelling today's forecast -->
     <string name="today">Today</string>
 
-    <!-- For labelling tomorrow's forecast [CHAR LIMIT=15] -->
+    <!-- For labelling tomorrow's forecast -->
     <string name="tomorrow">Tomorrow</string>
 
-    <!-- Temperature format in Celsius [CHAR LIMIT=5] -->
-    <string name="format_temperature_celsius">
-        <xliff:g id="temp">%1.0f</xliff:g>\u00B0C
+    <!-- Date format -->
+    <string name="format_full_friendly_date">
+        <xliff:g id="month">%1$s</xliff:g>, <xliff:g id="day">%2$s</xliff:g>
     </string>
 
-    <!-- Temperature format in Fahrenheit [CHAR LIMIT=5] -->
-    <string name="format_temperature_fahrenheit">
-        <xliff:g id="temp">%1.0f</xliff:g>\u00B0F
+
+
+    <!-- - - - - - - - - - - - - - - - -
+      - Used by SunshineWeatherUtils   -
+      - - - - - - - - - - - - - - - - -->
+
+    <!-- Temperature format -->
+    <string name="format_temperature">
+        <xliff:g id="temp">%1.0f</xliff:g>\u00B0
     </string>
+
+    <string name="wind_label">Wind</string>
+    <!-- Wind in kph -->
+    <string name="format_wind_kmh">
+        <xliff:g id="speed">%1$1.0f</xliff:g> km/h
+        <xliff:g id="direction">%2$s</xliff:g>
+    </string>
+
+    <!-- Wind in mph -->
+    <string name="format_wind_mph">
+        <xliff:g id="speed">%1$1.0f</xliff:g> mph
+        <xliff:g id="direction">%2$s</xliff:g>
+    </string>
+
+    <string name="pressure_label">Pressure</string>
+    <!-- Pressure format -->
+    <string name="format_pressure">
+        <xliff:g id="pressure">%1.0f</xliff:g> hPa
+    </string>
+
+    <string name="humidity_label">Humidity</string>
+    <!-- Humidity format -->
+    <string name="format_humidity">
+        <xliff:g id="humidity">%1.0f</xliff:g> %%
+    </string>
+
+
 
     <!-- Weather Conditions (From OpenWeatherMap) -->
     <string name="condition_2xx">Storm</string>

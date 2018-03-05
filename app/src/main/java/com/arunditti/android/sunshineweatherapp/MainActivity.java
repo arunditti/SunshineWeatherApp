@@ -86,9 +86,6 @@ public class MainActivity extends AppCompatActivity implements
          */
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_forecast);
 
-        // Find the TextView for the error message using findViewById
-        mErrorMessage = (TextView) findViewById(R.id.error);
-
         // Find the ProgressBar using findViewById
         mLoadingIndicator = (ProgressBar) findViewById(R.id.progress);
 
@@ -210,18 +207,14 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    /**
-     * This method is for responding to clicks from our list.
-     *
-     * @param weatherForDay String describing weather details for a particular day
-     */
+    //This method is for responding to clicks from our list.
     @Override
-    public void onClick(String weatherForDay) {
-        Context context = this;
-        Class destinationClass = DetailActivity.class;
-        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
-        intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT, weatherForDay);
-        startActivity(intentToStartDetailActivity);
+    public void onClick(long date) {
+        Intent weatherDetailIntent = new Intent(MainActivity.this, DetailActivity.class);
+//      COMPLETED (39) Refactor onClick to pass the URI for the clicked date with the Intent
+        Uri uriForDateClicked = WeatherContract.WeatherEntry.buildWeatherUriWithDate(date);
+        weatherDetailIntent.setData(uriForDateClicked);
+        startActivity(weatherDetailIntent);
     }
 
     /**
@@ -232,17 +225,20 @@ public class MainActivity extends AppCompatActivity implements
      * need to check whether each view is currently visible or invisible.
      */
     private void showWeatherDataView() {
-        /* First, make sure the error is invisible */
-        mErrorMessage.setVisibility(View.INVISIBLE);
+         /* First, hide the loading indicator */
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
         /* Then, make sure the weather data is visible */
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
     // Create a method called showLoading that shows the loading indicator and hides the data
     private void showLoading() {
+        /* Then, hide the weather data */
         mRecyclerView.setVisibility(View.INVISIBLE);
+        /* Finally, show the loading indicator */
         mLoadingIndicator.setVisibility(View.VISIBLE);
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
