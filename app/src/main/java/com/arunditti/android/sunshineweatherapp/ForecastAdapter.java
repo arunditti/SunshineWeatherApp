@@ -66,31 +66,33 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
 ;
         mCursor.moveToPosition(position);
 
-        //Read date from the cursor
-        int dateInMillisIdex = mCursor.getColumnIndex(WeatherEntry.COLUMN_DATE);
-        long dateInMillis = mCursor.getLong(dateInMillisIdex);
-        //FGet human readable string using Utility method
+        /*******************
+         * Weather Summary *
+         *******************/
+//      Generate a weather summary with the date, description, high and low
+        /* Read date from the cursor */
+        long dateInMillis = mCursor.getLong(MainActivity.INDEX_WEATHER_DATE);
+
+        /* Get human readable string using our utility method */
         String dateString = SunshineDateUtils.getFriendlyDateString(mContext, dateInMillis, false);
 
-        //Use weather Id to get the proper desrciption
-        int weatherIdIndex = mCursor.getColumnIndex(WeatherEntry.COLUMN_WEATHER_ID);
-        int weatherId = mCursor.getInt(weatherIdIndex);
+        /* Use the weatherId to obtain the proper description */
+        int weatherId = mCursor.getInt(MainActivity.INDEX_WEATHER_CONDITION_ID);
+
         String description = SunshineWeatherUtils.getStringForWeatherCondition(mContext, weatherId);
 
-        //Read high temperature from cursor
-        int highInCelsiusIndex = mCursor.getColumnIndex(WeatherEntry.COLUMN_MAX_TEMP);
-        double highInCelsius = mCursor.getInt(highInCelsiusIndex);
-        //Read low temperature from cursor
-        int lowInCelsiusIndex = mCursor.getColumnIndex(WeatherEntry.COLUMN_MIN_TEMP);
-        double lowInCelsius = mCursor.getInt(lowInCelsiusIndex);
+        /* Read high temperature from the cursor (in degrees celsius) */
+        double highInCelsius = mCursor.getDouble(MainActivity.INDEX_WEATHER_MAX_TEMP);
 
+        /* Read low temperature from the cursor (in degrees celsius) */
+        double lowInCelsius = mCursor.getDouble(MainActivity.INDEX_WEATHER_MIN_TEMP);
 
-        String highTemperature = SunshineWeatherUtils.formatTemperature(mContext, highInCelsius);
-        String lowTemperature = SunshineWeatherUtils.formatTemperature(mContext, lowInCelsius);
+        String highAndLowTemperature =
+                SunshineWeatherUtils.formatHighLows(mContext, highInCelsius, lowInCelsius);
 
-        String weatherSummary = dateString + " - " + description + " - " + highTemperature + " / " + lowTemperature;
+        String weatherSummary = dateString + " - " + description + " - " + highAndLowTemperature;
 
-//      COMPLETED (8) Display the summary that you created above
+//      Display the summary that you created above
         forecastAdapterViewHolder.weatherSummary.setText(weatherSummary);
 
     }
