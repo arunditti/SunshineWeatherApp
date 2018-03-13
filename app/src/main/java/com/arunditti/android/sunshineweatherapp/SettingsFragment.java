@@ -11,6 +11,7 @@ import android.support.v7.preference.PreferenceScreen;
 
 import com.arunditti.android.sunshineweatherapp.data.SunshinePreferences;
 import com.arunditti.android.sunshineweatherapp.data.WeatherContract;
+import com.arunditti.android.sunshineweatherapp.sync.SunshineSyncUtils;
 
 /**
  * Created by arunditti on 2/13/18.
@@ -25,7 +26,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
   /* Add 'general' preferences, defined in the XML file */
         addPreferencesFromResource(R.xml.pref_general);
 
-        // COMPLETED (9) Set the preference summary on each preference that isn't a CheckBoxPreference
+        //Set the preference summary on each preference that isn't a CheckBoxPreference
         SharedPreferences sharedPreferences = getPreferenceScreen().getSharedPreferences();
         PreferenceScreen prefScreen = getPreferenceScreen();
         int count = prefScreen.getPreferenceCount();
@@ -38,7 +39,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         }
     }
 
-    // COMPLETED (8) Create a method called setPreferenceSummary that accepts a Preference and an Object and sets the summary of the preference
+    // Create a method called setPreferenceSummary that accepts a Preference and an Object and sets the summary of the preference
     private void setPreferenceSummary(Preference preference, Object value) {
         String stringValue = value.toString();
         String key = preference.getKey();
@@ -57,7 +58,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         }
     }
 
-    // COMPLETED (13) Unregister SettingsFragment (this) as a SharedPreferenceChangedListener in onStop
+    //  Unregister SettingsFragment (this) as a SharedPreferenceChangedListener in onStop
     @Override
     public void onStop() {
         super.onStop();
@@ -84,6 +85,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
             // we've changed the location
             // Wipe out any potential PlacePicker latlng values so that we can use this text entry.
             SunshinePreferences.resetLocationCoordinates(activity);
+
+            //Sync the weather if the location changes
+            SunshineSyncUtils.startImmediateSync(activity);
         } else if (key.equals(getString(R.string.pref_units_key))) {
             // units have changed. update lists of weather entries accordingly
             activity.getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);

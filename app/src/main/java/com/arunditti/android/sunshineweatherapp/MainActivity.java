@@ -27,7 +27,7 @@ import android.widget.TextView;
 
 import com.arunditti.android.sunshineweatherapp.data.SunshinePreferences;
 import com.arunditti.android.sunshineweatherapp.data.WeatherContract;
-import com.arunditti.android.sunshineweatherapp.utilities.FakeDataUtils;
+import com.arunditti.android.sunshineweatherapp.sync.SunshineSyncUtils;
 import com.arunditti.android.sunshineweatherapp.utilities.NetworkUtils;
 import com.arunditti.android.sunshineweatherapp.utilities.OpenWeatherJsonUtils;
 
@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         getSupportActionBar().setElevation(0f);
 
-        FakeDataUtils.insertFakeData(this);
+       // FakeDataUtils.insertFakeData(this);
 
         /*
           Using findViewById, we get a reference to our TextView from xml. This allows us to
@@ -117,6 +117,9 @@ public class MainActivity extends AppCompatActivity implements
          * the last created loader is re-used.
          */
         getSupportLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
+
+        //Call SunshineSyncUtils's startImmediateSync method
+        SunshineSyncUtils.startImmediateSync(this);
     }
     /**
      * Instantiate and return a new Loader for the given ID.

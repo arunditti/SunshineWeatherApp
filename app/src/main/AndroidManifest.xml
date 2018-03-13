@@ -39,6 +39,11 @@
             android:authorities="com.arunditti.android.sunshineweatherapp"
             android:exported="false" />
 
+       <!-- Register SunshineSyncIntentService in the manifest. This is required for immediate syncs -->
+        <service
+            android:name=".sync.SunshineSyncIntentService"
+            android:exported="false" />
+
     </application>
 
 </manifest>
