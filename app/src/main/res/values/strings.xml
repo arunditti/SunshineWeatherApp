@@ -168,4 +168,14 @@
 
     <string name="condition_unknown">Unknown (<xliff:g id="conditionId">%1$d</xliff:g>)</string>
 
+    <!-- Used by NotificationUtils -->
+
+    <!-- The format of the notification we show when the weather is updated -->
+    <string name="format_notification">
+        Forecast:<xliff:g id="condition">%1$s</xliff:g> -
+        High:<xliff:g id="high">%2$s</xliff:g>
+        Low:<xliff:g id="low">%3$s</xliff:g>
+    </string>
+
+
 </resources>
