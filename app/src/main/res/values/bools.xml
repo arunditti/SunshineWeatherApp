@@ -3,4 +3,6 @@
 <resources>
     <!-- Add a boolean value for showing notifications by default to res/bools.xml -->
     <bool name="show_notifications_by_default">true</bool>
+    <!--Add a bool called use_today_layout and set it to false -->
+    <bool name="use_today_layout">true</bool>
 </resources>
