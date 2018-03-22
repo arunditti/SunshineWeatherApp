@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Create a layout called primary_weather_info.xml -->
-<!-- Surround the entire layout with <layout/> tags for data binding -->
+
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Using ConstraintLayout, create the primary weather info layout -->
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-         - This Guideline divides the screen into a left half and a right half and is used to    -
-         - anchor the views to the middle of the screen.                                         -
-         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+        <!-- This Guideline divides the screen into a left half and a right half and is used to anchor the views to the middle of the screen. -->
         <android.support.constraint.Guideline
             android:id="@+id/horizontal_middle"
             android:layout_width="wrap_content"
@@ -23,6 +18,7 @@
             tools:layout_editor_absoluteX="192dp"
             tools:layout_editor_absoluteY="0dp"/>
 
+        <!-- Selected day's date    -->
         <TextView
             android:id="@+id/date"
             android:layout_width="wrap_content"
@@ -52,6 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textColor="@color/secondary_text"
             android:textSize="20sp"
             app:layout_constraintHorizontal_bias="0.52"
             app:layout_constraintLeft_toLeftOf="@+id/weather_icon"
@@ -59,10 +56,13 @@
             app:layout_constraintTop_toBottomOf="@+id/weather_icon"
             tools:text="Rainy"/>
 
+        <!-- High temperature for today  -->
         <TextView
             android:id="@+id/high_temperature"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@color/primary_text"
             android:textSize="72sp"
             app:layout_constraintBottom_toBottomOf="@+id/weather_icon"
             app:layout_constraintHorizontal_bias="0.45"
@@ -71,10 +71,14 @@
             app:layout_constraintTop_toTopOf="@+id/weather_icon"
             tools:text="19\u00b0"/>
 
+         <!--Low temperature for today -->
+
         <TextView
             android:id="@+id/low_temperature"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@color/secondary_text"
             android:textSize="36sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/weather_description"
             app:layout_constraintLeft_toLeftOf="@+id/high_temperature"
