@@ -19,7 +19,7 @@ import javax.net.ssl.HttpsURLConnection;
  * Created by arunditti on 1/23/18.
  */
 
-public class NetworkUtils {
+public final class NetworkUtils {
 
     private static final String TAG = NetworkUtils.class.getSimpleName();
 
@@ -31,6 +31,13 @@ public class NetworkUtils {
 
     private static final String FORECAST_BASE_URL = STATIC_WEATHER_URL;
 
+    /*
+     * NOTE: These values only effect responses from OpenWeatherMap, NOT from the fake weather
+     * server. They are simply here to allow us to teach you how to build a URL if you were to use
+     * a real API.If you want to connect your app to OpenWeatherMap's API, feel free to! However,
+     * we are not going to show you how to do so in this course.
+     */
+
     /* The format we want our API to return */
     private static final String format = "json";
     /* The units we want our API to return */
@@ -38,12 +45,18 @@ public class NetworkUtils {
     /* The number of days we want our API to return */
     private static final int numDays = 14;
 
-    final static String QUERY_PARAM = "q";
-    final static String LAT_PARAM = "lat";
-    final static String LON_PARAM = "lon";
-    final static String FORMAT_PARAM = "mode";
-    final static String UNITS_PARAM = "units";
-    final static String DAYS_PARAM = "cnt";
+    /* The query parameter allows us to provide a location string to the API */
+    private static final String QUERY_PARAM = "q";
+
+    private static final String LAT_PARAM = "lat";
+    private static final String LON_PARAM = "lon";
+
+    /* The format parameter allows us to designate whether we want JSON or XML from our API */
+    private static final String FORMAT_PARAM = "mode";
+    /* The units parameter allows us to designate whether we want metric units or imperial units */
+    private static final String UNITS_PARAM = "units";
+    /* The days parameter allows us to designate how many days of weather data we want */
+    private static final String DAYS_PARAM = "cnt";
 
     /**
      * Retrieves the proper URL to query for the weather data. The reason for both this method as

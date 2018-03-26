@@ -24,17 +24,25 @@ import java.util.concurrent.TimeUnit;
 
 public class SunshineSyncUtils {
 
-    //Add constant values to sync Sunshine every 3-4 hours
+    /*
+     * Interval at which to sync with the weather. Use TimeUnit for convenience, rather than
+     * writing out a bunch of multiplication ourselves and risk making a silly mistake.
+     */
     private static final int SYNC_INTERVAL_HOURS = 3;
     private static final int SYNC_INTERVAL_SECONDS = (int) TimeUnit.HOURS.toSeconds(SYNC_INTERVAL_HOURS);
     private static final int SYNC_FLEXTIME_SECONDS = SYNC_INTERVAL_SECONDS / 3;
 
     private static boolean sInitialized;
 
-    //Add a sync tag to identify our sync job
     private static final String SUNSHINE_SYNC_TAG = "sunshine-sync";
-    //Create a methos to schedule our periodic weather sync
-    static void scheduleFirebaseJobDispatcherSync(final Context context) {
+
+    /**
+     * Schedules a repeating sync of Sunshine's weather data using FirebaseJobDispatcher.
+     *
+     * @param context Context used to create the GooglePlayDriver that powers the
+     *                FirebaseJobDispatcher
+     */
+    static void scheduleFirebaseJobDispatcherSync(@NonNull final Context context) {
 
         Driver driver = new GooglePlayDriver(context);
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
@@ -79,28 +87,34 @@ public class SunshineSyncUtils {
                 /* Once the Job is ready, call the builder's build method to return the Job */
                 .build();
 
-   /* Schedule the Job with the dispatcher */
+        /* Schedule the Job with the dispatcher */
         dispatcher.schedule(syncSunshineJob);
-
     }
 
-    //Create a synchronized public static void method called initialize
-    synchronized public static void initialize(final Context context) {
+    /**
+     * Creates periodic sync tasks and checks to see if an immediate sync is required. If an
+     * immediate sync is required, this method will take care of making sure that sync occurs.
+     *
+     * @param context Context that will be passed to other methods and used to access the
+     *                ContentResolver
+     */
+    synchronized public static void initialize(@NonNull final Context context) {
 
-        //Only execute this body if sInitialize is false
-        if (sInitialized = true) {
-            return;
-        }
+        /*
+         * Only perform initialization once per app lifetime. If initialization has already been
+         * performed, we have nothing to do in this method.
+         */
+        if (sInitialized) return;
 
-        //If the method body is executed. set initialize to true
         sInitialized = true;
 
-        //Call the method you created to schedule a periodic weather sync
-
-        //This method call triggers Sunshine to create its task to synchronize weather data periodically.
+        /*
+         * This method call triggers Sunshine to create its task to synchronize weather data
+         * periodically.
+         */
         scheduleFirebaseJobDispatcherSync(context);
 
-         /*
+        /*
          * We need to check to see if our ContentProvider has data to display in our forecast
          * list. However, performing a query on the main thread is a bad idea as this may
          * cause our UI to lag. Therefore, we create a thread in which we will run the query
@@ -109,32 +123,54 @@ public class SunshineSyncUtils {
         Thread checkForEmpty = new Thread(new Runnable() {
             @Override
             public void run() {
-                //Uri for every row of weather data in our weather table
-                Uri forecastQueryUri = WeatherContract.WeatherEntry.CONTENT_URI;
-                String[] projection = {WeatherContract.WeatherEntry._ID};
-                String selectionStatemnet = WeatherContract.WeatherEntry.getSqlSelectForTodayOnwards();
 
-                //Perform query to check if we have any weather data
+                /* URI for every row of weather data in our weather table*/
+                Uri forecastQueryUri = WeatherContract.WeatherEntry.CONTENT_URI;
+
+                /*
+                 * Since this query is going to be used only as a check to see if we have any
+                 * data (rather than to display data), we just need to PROJECT the ID of each
+                 * row. In our queries where we display data, we need to PROJECT more columns
+                 * to determine what weather details need to be displayed.
+                 */
+                String[] projectionColumns = {WeatherContract.WeatherEntry._ID};
+                String selectionStatement = WeatherContract.WeatherEntry
+                        .getSqlSelectForTodayOnwards();
+
+                /* Here, we perform the query to check to see if we have any weather data */
                 Cursor cursor = context.getContentResolver().query(
                         forecastQueryUri,
-                        projection,
-                        selectionStatemnet,
+                        projectionColumns,
+                        selectionStatement,
                         null,
                         null);
-
-                //If it is empty or we have a null cursor, sync the weather data now
-                if(null == cursor || cursor.getCount() == 0) {
+                /*
+                 * A Cursor object can be null for various different reasons. A few are
+                 * listed below.
+                 *
+                 *   1) Invalid URI
+                 *   2) A certain ContentProvider's query method returns null
+                 *   3) A RemoteException was thrown.
+                 *
+                 * Bottom line, it is generally a good idea to check if a Cursor returned
+                 * from a ContentResolver is null.
+                 *
+                 * If the Cursor was null OR if it was empty, we need to sync immediately to
+                 * be able to display data to the user.
+                 */
+                if (null == cursor || cursor.getCount() == 0) {
                     startImmediateSync(context);
                 }
 
-                //make sure to close the cursor to avoid memory leaks
+                /* Make sure to close the Cursor to avoid memory leaks! */
                 cursor.close();
             }
         });
+
+        /* Finally, once the thread is prepared, fire it off to perform our checks. */
         checkForEmpty.start();
     }
 
-    //Create a public static void method called startImmediateSync
     /**
      * Helper method to perform a sync immediately using an IntentService for asynchronous
      * execution.
@@ -142,9 +178,7 @@ public class SunshineSyncUtils {
      * @param context The Context used to start the IntentService for the sync.
      */
     public static void startImmediateSync(@NonNull final Context context) {
-        //Within that method, start the SunshineSyncIntentService
         Intent intentToSyncImmediately = new Intent(context, SunshineSyncIntentService.class);
         context.startService(intentToSyncImmediately);
     }
 }
-
